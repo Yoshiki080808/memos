@@ -2,108 +2,92 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Secret Note</title>
+<title>Colorful Post it</title>
 <script src="js/jquery-2.1.3.min.js"></script>
+<script src="js/jquery-ui.min.js"></script>
 <link rel="stylesheet" href="css/sample.css">
 </head>
 <body>
 <header>
-<h1>Secret MemoPad</h1>
+<h1>Colorful Post it!</h1>
 </header>
 <main>
-    <input type="text" id="key">
-    <textarea id="memo"></textarea>
-    <ul>
-        <li id="save">Save</li>
-        <li id="delete">Delete One</li>
-        <li id="move">Move to Secret</li>
-        <li id="clear">Clear</li>
-    </ul>
+    <div id="controller">
+        <input type="button" id="add-button" value="追加"><!-- 追加ボタン -->
+    </div>
+    <div id="sticky-note-container">
+      <!-- ここにポストイットたちが入っていく -->
+    </div>
 </main>
+
 <table id="list">
 <!-- ここに追加データが挿入される -->
 </table>
-<div>
-    <button class="btn1">極秘メモ</button>
-    <table id="list2">
-    </table>
-</div>
+
 <script>
 
-let memos;
+// 1.付箋作り。追加ボタンを押すと、付箋っぽいdiv要素が表示される
+// inputを使ってテキストボックスを表示する関数を作る（省力できるけど）
+// function getNewNote() {
+//     return  '<div class="note">' + 
+//             '<input type="text">' +
+//             '<input class="delete-button" type="button" value="削除">' +
+//             '</div>';
+// }
+// 次に変数noteに上記のinputを入れ込む、そんでcontainerに付箋表示(普通のテキスト)
+// $('#add-button').on('click', function(){
+//     let note = getNewNote();
+//     $('#sticky-note-container').append(note);
+// });
 
-//1.Save クリックイベント 日本語でもいける　
-$("#save").on("click",function(){
-    const key = $("#key").val();
-    const memo = $("#memo").val();
-    memos = [memo, "false"];
-    localStorage.setItem(key, JSON.stringify(memos));// JSONを使って、配列をLSに保存
-    const html = '<tr class="adds" name="c"><td><input type="radio" name="a" value="b"></td><td>'+key+'</td><td>'+memos[0]+'</td></tr>';
-    $("#list").append(html);
-    $("#key").val("");// 入力箇所を空に
-    $("#memo").val("");
-});
+// 2.付箋をドラッグ＆ドロップできるようにする
+// $('#add-button').on('click', function(){
+//     let $note = $(getNewNote());
+//     $note.draggable();
+//     $('#sticky-note-container').append($note);
+// });
 
+// ３.付箋を削除
+// $('#add-button').on('click', function(){
+//     var $note = $(getNewNote());
+//     $note.draggable();
+//     $note.children(".delete-button")
+//         .on('click', function() {
+//             $(this).parents('.note').remove();
+//     });
+//     $('#sticky-note-container').append($note);
+// });
 
-//2.clear クリックイベント
-$("#clear").on("click",function(){
-    localStorage.clear();// 全消し
-    $("#list").empty();// 指定したIDの場所を空にする
-});
-
-//3.ページ読み込み：保存データ取得表示
-for(let i=0; i<localStorage.length; i++){
-    // key(何番目)でkey名を取得
-    const key = localStorage.key(i);
-    memos = JSON.parse(localStorage.getItem(key));
-
-    // 一覧を表示する
-    const html = '<tr class="adds" name="c"><td><input type="radio" name="a" value="b"></td><td>'+key+'</td><td>'+memos[0]+'</td></tr>';
-    if(memos[1]==="true"){
-        $("#list2").append(html);
-    } else {
-        $("#list").append(html);  
-    } 
+// 4.次に、色を変えてみる
+function getNewNote() {
+    return  '<div class="note">' + 
+            '<input type="text">' +
+            '<input class="delete-button" type="button" value="削除">' +
+            '<input data-color="#F390B0" class="color-button" type="button" value="赤">' +
+            '<input data-color="#65B5F5" class="color-button" type="button" value="青">' +
+            '<input data-color="#FFE082" class="color-button" type="button" value="黄">' +
+            '</div>';
 }
 
-// ローカルストレージでは、順番が配列のように指定できていない。
-// 綺麗に並べられるやり方がある。
+function appendFunctions($note) {
+    $note.draggable();
 
-
-// 4.一つだけ指定して削除
-$("#delete").on('click',function(){
-    const added = $('input[name=a]:checked').parent().next().text();  // checkedされたinput要素の、親要素の、隣の、テキスト（今回の場合キーの名前）
-    localStorage.removeItem(added);// ローカルストレージからcheckedされたHTML要素のキーを削除
-    const input = 
-    $("input[name=a]:checked").parent().parent().remove();// input要素の、チェックされたものの、親要素の親要素を削除
-});
-
-// これで、4のコンソールに表示されるのか確認した
-// $('input[name=b]:checked')
-// console.log($('input[name=b]:checked').parent().next().text());
-
-// 5.秘密メモに移動
-$("#move").on('click',function(){
-    const added = $('input[name=a]:checked').parent().next().text();
-    $($("input[name=a]:checked").parent().parent()).appendTo('#list2');
-    memos[1] = "true";
-    localStorage.setItem(added, JSON.stringify(memos));
-});
-
-// ６.極秘メモの非表示と表示を切り替えられる処理
-$(document).ready(function(){
-    $("#list2").hide();
-    $(".btn1").click(function(){
-        if($("#list2").hasClass('show')){
-            $("#list2").hide();
-            $('#list2').toggleClass('show');
-        }else{
-            $("#list2").show();
-            $('#list2').toggleClass('show');
-        }
+    $note.children(".delete-button").on('click', function() {
+        $(this).parents('.note').remove();
     });
-});
 
+    $note.children(".color-button").on('click', function() {
+        const color = $(this).data('color');
+        $(this).parents('.note').css('background-color', color);
+  });
+}
+
+$('#add-button').on('click', function(){
+    var $note = $(getNewNote());
+    appendFunctions($note);
+
+    $('#sticky-note-container').append($note);
+});
 </script>
 <footer><small>G's</small></footer>
 </body>
